@@ -1,0 +1,640 @@
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'VT323', monospace;
+  background: linear-gradient(135deg, #2c1810 0%, #1a0e08 100%);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.App {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  perspective: 1000px;
+}
+
+/* CRT Monitor Frame */
+.crt-monitor {
+  position: relative;
+  width: 900px;
+  height: 700px;
+  background: linear-gradient(145deg, #d4c4a0 0%, #8b7355 50%, #6b5a45 100%);
+  border-radius: 25px;
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.8),
+    inset 0 2px 5px rgba(255, 255, 255, 0.3),
+    inset 0 -2px 10px rgba(0, 0, 0, 0.5);
+  padding: 40px;
+  transform: rotateX(2deg);
+}
+
+.monitor-brand {
+  position: absolute;
+  top: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #3a3125;
+  font-size: 18px;
+  font-family: Arial, sans-serif;
+  font-weight: bold;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.3);
+}
+
+.monitor-speaker {
+  position: absolute;
+  bottom: 15px;
+  right: 40px;
+  width: 60px;
+  height: 60px;
+  background: repeating-linear-gradient(
+    0deg,
+    #2a2318 0px,
+    #2a2318 2px,
+    #3a3125 2px,
+    #3a3125 4px
+  );
+  border-radius: 50%;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.power-button {
+  position: absolute;
+  bottom: 20px;
+  left: 40px;
+  width: 50px;
+  height: 50px;
+  background: radial-gradient(circle, #444, #222);
+  border-radius: 50%;
+  border: 3px solid #1a1a1a;
+  cursor: pointer;
+  box-shadow:
+    0 3px 10px rgba(0, 0, 0, 0.5),
+    inset 0 -2px 5px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s;
+}
+
+.power-button:hover {
+  background: radial-gradient(circle, #555, #333);
+}
+
+.power-button::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  background: #00ff00;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #00ff00;
+  animation: powerLED 2s ease-in-out infinite;
+}
+
+@keyframes powerLED {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
+}
+
+/* CRT Screen Container */
+.crt-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow:
+    inset 0 0 50px rgba(0, 0, 0, 0.5),
+    inset 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+/* CRT Screen */
+.crt-screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(ellipse at center, #001100 0%, #000000 100%);
+  border-radius: 15px;
+  padding: 30px;
+  overflow: hidden;
+}
+
+/* Screen curve effect */
+.crt-screen::before {
+  content: '';
+  position: absolute;
+  top: -5%;
+  left: -5%;
+  right: -5%;
+  bottom: -5%;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 0%,
+    transparent 65%,
+    rgba(0, 0, 0, 0.2) 100%
+  );
+  border-radius: 15px;
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* Phosphor glow effect */
+.crt-screen::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(0, 255, 0, 0.03) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Monitor-specific styles */
+.crt-monitor.sonytv .monitor-brand {
+  color: #ffffff;
+  font-family: Arial, sans-serif;
+  letter-spacing: 2px;
+}
+
+.crt-monitor.nationaltv {
+  background-image:
+    linear-gradient(145deg, #8b7d6b 0%, #6b5d4f 50%, #4b3d2f 100%),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.1) 2px,
+      rgba(0,0,0,0.1) 4px
+    );
+}
+
+.monitor-model {
+  position: absolute;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #4a4a4a;
+  font-size: 12px;
+  font-family: Arial, sans-serif;
+  opacity: 0.7;
+}
+
+.channel-dials {
+  position: absolute;
+  right: 100px;
+  bottom: 20px;
+  display: flex;
+  gap: 15px;
+}
+
+.dial {
+  width: 40px;
+  height: 40px;
+  background: radial-gradient(circle, #4a4a4a, #2a2a2a);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: #888;
+  box-shadow:
+    inset 0 2px 4px rgba(0,0,0,0.5),
+    0 1px 2px rgba(255,255,255,0.1);
+}
+
+.vent-slots {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 80px;
+  height: 30px;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    #3a3a3a 3px,
+    #3a3a3a 6px
+  );
+  opacity: 0.5;
+}
+
+.monitor-speaker.bottom-sides {
+  position: absolute;
+  bottom: 15px;
+  left: 40px;
+  width: 40px;
+  height: 40px;
+}
+
+.monitor-speaker.bottom-sides::after {
+  content: '';
+  position: absolute;
+  right: -280px;
+  top: 0;
+  width: 40px;
+  height: 40px;
+  background: inherit;
+  border-radius: inherit;
+  box-shadow: inherit;
+}
+
+.monitor-speaker.side {
+  position: absolute;
+  top: 50%;
+  left: 20px;
+  transform: translateY(-50%);
+  width: 50px;
+  height: 100px;
+}
+
+.monitor-speaker.bottom-front {
+  position: absolute;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 20px;
+  border-radius: 10px;
+}
+
+/* IBM Classic Monitor Styling */
+.crt-monitor.ibmGreen,
+.crt-monitor.ibmCGA {
+  box-shadow:
+    0 25px 70px rgba(0, 0, 0, 0.9),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -3px 8px rgba(0, 0, 0, 0.3),
+    inset -3px 0 8px rgba(0, 0, 0, 0.2),
+    inset 3px 0 8px rgba(0, 0, 0, 0.2);
+}
+
+.crt-monitor.ibmGreen::after,
+.crt-monitor.ibmCGA::after {
+  content: 'IBM';
+  position: absolute;
+  bottom: 12px;
+  left: 25px;
+  font-family: 'Arial Black', sans-serif;
+  font-size: 16px;
+  font-weight: 900;
+  color: #3a3a3a;
+  letter-spacing: 2px;
+  opacity: 0.7;
+}
+
+.crt-monitor.ibmGreen .monitor-brand,
+.crt-monitor.ibmCGA .monitor-brand {
+  display: none;
+}
+
+.crt-monitor.ibmGreen .power-button,
+.crt-monitor.ibmCGA .power-button {
+  bottom: 15px;
+  right: 30px;
+  width: 30px;
+  height: 30px;
+  background: radial-gradient(circle, #3a3a3a, #1a1a1a);
+  border: 2px solid #0a0a0a;
+  box-shadow:
+    inset 0 -1px 2px rgba(0, 0, 0, 0.5),
+    0 1px 1px rgba(255, 255, 255, 0.1);
+}
+
+.crt-monitor.ibmGreen .crt-container,
+.crt-monitor.ibmCGA .crt-container {
+  background: linear-gradient(to bottom, #2a2a2a, #1a1a1a);
+  padding: 4px;
+  border-radius: 10px;
+  box-shadow:
+    inset 0 0 40px rgba(0, 0, 0, 0.9),
+    inset 0 3px 8px rgba(0, 0, 0, 0.8);
+}
+
+.crt-monitor.ibmGreen .monitor-model,
+.crt-monitor.ibmCGA .monitor-model {
+  color: #2a2a2a;
+  font-size: 10px;
+  font-family: 'Arial', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.5;
+}
+
+/* IBM Green Phosphor Mode */
+.crt-monitor.ibmGreen .terminal {
+  color: #33ff33;
+  text-shadow:
+    0 0 2px #33ff33,
+    0 0 8px rgba(51, 255, 51, 0.6);
+}
+
+.crt-monitor.ibmGreen .terminal-cursor {
+  background: #33ff33;
+  box-shadow: 0 0 5px #33ff33;
+}
+
+.crt-monitor.ibmGreen .power-button::after {
+  background: #33ff33;
+  box-shadow: 0 0 10px #33ff33;
+}
+
+/* CGA Color Mode */
+.crt-monitor.cga-mode .terminal {
+  color: var(--cga-white);
+  text-shadow:
+    0 0 1px var(--cga-white),
+    0 0 4px rgba(255, 255, 255, 0.3);
+}
+
+.crt-monitor.cga-mode .terminal-cursor {
+  background: var(--cga-white);
+  box-shadow: 0 0 3px var(--cga-white);
+}
+
+.crt-monitor.cga-mode .terminal-error {
+  color: var(--cga-magenta);
+  text-shadow:
+    0 0 2px var(--cga-magenta),
+    0 0 6px rgba(255, 0, 255, 0.4);
+}
+
+.crt-monitor.cga-mode .terminal-system {
+  color: var(--cga-cyan);
+  text-shadow:
+    0 0 2px var(--cga-cyan),
+    0 0 6px rgba(0, 255, 255, 0.4);
+}
+
+.crt-monitor.cga-mode .terminal-prompt {
+  color: var(--cga-white);
+}
+
+.crt-monitor.ibmCGA .power-button::after {
+  background: #00ffff;
+  box-shadow: 0 0 10px #00ffff;
+}
+
+/* Commodore Classic Monitor Styling */
+.crt-monitor.commodore {
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.8),
+    inset 0 2px 5px rgba(255, 255, 255, 0.3),
+    inset 0 -2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.crt-monitor.commodore .monitor-brand {
+  font-family: 'Arial', sans-serif;
+  font-weight: bold;
+  font-size: 16px;
+  letter-spacing: 3px;
+  color: #3a3125;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.3);
+}
+
+.crt-monitor.commodore .monitor-speaker {
+  background: repeating-linear-gradient(
+    0deg,
+    #2a2318 0px,
+    #2a2318 2px,
+    #3a3125 2px,
+    #3a3125 4px
+  );
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.crt-monitor.commodore .crt-container {
+  background: #1a1510;
+  padding: 5px;
+  box-shadow:
+    inset 0 0 30px rgba(0, 0, 0, 0.7),
+    inset 0 2px 5px rgba(0, 0, 0, 0.8);
+}
+
+.terminal-wrapper {
+  width: 100%;
+  height: 100%;
+}
+
+.terminal-wrapper .terminal {
+  color: var(--phosphor-color, #00ff00);
+  text-shadow:
+    0 0 3px var(--phosphor-color, #00ff00),
+    0 0 10px color-mix(in srgb, var(--phosphor-color, #00ff00) 50%, transparent);
+}
+
+.terminal-wrapper .terminal-cursor {
+  background: var(--phosphor-color, #00ff00);
+  box-shadow: 0 0 5px var(--phosphor-color, #00ff00);
+}
+
+/* Scanlines */
+.scanlines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px,
+    transparent 2px,
+    rgba(0, 255, 0, 0.03) 2px,
+    rgba(0, 255, 0, 0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 4;
+  animation: scanlines 8s linear infinite;
+}
+
+@keyframes scanlines {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(10px); }
+}
+
+/* Flicker effect */
+.flicker {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 5;
+  animation: flicker 0.15s infinite;
+  opacity: 0.03;
+  background: rgba(0, 255, 0, 0.1);
+}
+
+@keyframes flicker {
+  0% { opacity: 0.03; }
+  50% { opacity: 0.01; }
+  100% { opacity: 0.03; }
+}
+
+/* Terminal */
+.terminal {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  color: #00ff00;
+  font-family: 'VT323', monospace;
+  font-size: 20px;
+  line-height: 1.4;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  text-shadow:
+    0 0 3px #00ff00,
+    0 0 10px rgba(0, 255, 0, 0.5);
+  z-index: 1;
+}
+
+/* Screen buffer for LOCATE-based programs */
+.screen-buffer {
+  font-family: 'VT323', monospace;
+  white-space: pre;
+  line-height: 1.0;
+}
+
+.screen-buffer .terminal-line {
+  margin: 0;
+  padding: 0;
+  height: 1.0em;
+}
+
+.terminal::-webkit-scrollbar {
+  width: 0;
+}
+
+.terminal-content {
+  min-height: 100%;
+}
+
+.terminal-line {
+  margin: 0;
+  padding: 0;
+}
+
+.terminal-prompt {
+  color: #00ff00;
+}
+
+.terminal-cursor {
+  display: inline-block;
+  width: 10px;
+  height: 20px;
+  background: #00ff00;
+  animation: blink 1s step-start infinite;
+  box-shadow: 0 0 5px #00ff00;
+  vertical-align: text-bottom;
+  margin-left: 2px;
+}
+
+@keyframes blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+.terminal-error {
+  color: #ff6b6b;
+  text-shadow:
+    0 0 3px #ff6b6b,
+    0 0 10px rgba(255, 107, 107, 0.5);
+}
+
+.terminal-system {
+  color: #ffff00;
+  text-shadow:
+    0 0 3px #ffff00,
+    0 0 10px rgba(255, 255, 0, 0.5);
+}
+
+.terminal-output {
+  color: #00ff00;
+}
+
+/* Input handling */
+.hidden-input {
+  position: absolute;
+  left: -9999px;
+  opacity: 0;
+}
+
+/* Retro startup animation */
+@keyframes crtOn {
+  0% {
+    transform: scaleY(0.01) scaleX(0.8);
+    filter: brightness(4);
+  }
+  5% {
+    transform: scaleY(0.05) scaleX(0.9);
+  }
+  20% {
+    transform: scaleY(0.6) scaleX(1);
+    filter: brightness(2);
+  }
+  100% {
+    transform: scaleY(1) scaleX(1);
+    filter: brightness(1);
+  }
+}
+
+.crt-screen.starting {
+  animation: crtOn 0.5s ease-out;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 1000px) {
+  .crt-monitor {
+    width: 95vw;
+    height: 80vh;
+    padding: 30px;
+  }
+
+  .terminal {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 600px) {
+  .crt-monitor {
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+    padding: 20px;
+    transform: none;
+  }
+
+  .terminal {
+    font-size: 14px;
+    padding: 15px;
+  }
+
+  .monitor-brand {
+    font-size: 14px;
+  }
+
+  .power-button,
+  .monitor-speaker {
+    display: none;
+  }
+}

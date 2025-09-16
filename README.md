@@ -2,6 +2,8 @@
 
 Feel the retro vibe! A modern BASIC interpreter with Web Audio support, featuring musical capabilities and authentic 1980s programming experience.
 
+![VibeBASIC Demo](vibebasic-demo.gif)
+
 **🎮 RETRO PROGRAMMING WITH MODERN SOUND**
 
 ![VibeBASIC](https://img.shields.io/badge/VibeBASIC-Interpreter-purple)

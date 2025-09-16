@@ -128,14 +128,13 @@ node run-tests.js
 - Test documentation available
 - Continuous testing during development
 
-## 🤝 Contributing
+## 📚 Repository Status
 
-Contributions are welcome! Feel free to:
-- Add new BASIC programs
-- Enhance the interpreter
-- Improve sound capabilities
-- Add visual effects
-- Fix bugs
+**This is a READ-ONLY repository for educational reference.**
+
+- ✅ **You CAN**: Clone, fork, download, and learn from the code
+- ❌ **Pull requests**: Not accepted - this is a completed project
+- 💡 **Suggestions**: Feel free to fork and create your own version!
 
 ## 📜 License
 

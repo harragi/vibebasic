@@ -1,0 +1,1668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prepasaur Database Schema Design - Comprehensive</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #7c3aed;
+            --success: #059669;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-500: #6b7280;
+            --gray-700: #374151;
+            --gray-900: #111827;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 50%, #1e3a5f 100%);
+            min-height: 100vh;
+            color: var(--gray-900);
+        }
+
+        .container { max-width: 1600px; margin: 0 auto; padding: 2rem; }
+
+        header {
+            text-align: center;
+            padding: 3rem 0;
+            color: white;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            text-align: center;
+            background: rgba(255,255,255,0.1);
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .section {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--gray-100);
+        }
+
+        .section-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .section-subtitle {
+            font-size: 0.875rem;
+            color: var(--gray-500);
+        }
+
+        /* Domain Grid */
+        .domains-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .domain-card {
+            background: var(--gray-50);
+            border-radius: 12px;
+            padding: 1.25rem;
+            border: 1px solid var(--gray-200);
+            transition: all 0.3s ease;
+        }
+
+        .domain-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+            border-color: var(--primary);
+        }
+
+        .domain-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .domain-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            color: white;
+        }
+
+        .domain-name {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .domain-tables {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .table-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.6rem;
+            background: white;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-family: 'Monaco', 'Menlo', monospace;
+            color: var(--gray-700);
+            border: 1px solid var(--gray-200);
+        }
+
+        .table-item::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--primary);
+            flex-shrink: 0;
+        }
+
+        .table-item.master::before { background: var(--success); }
+        .table-item.reference::before { background: var(--warning); }
+
+        /* SQL Code Blocks */
+        .sql-container {
+            background: #1e1e1e;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        .sql-header {
+            background: #2d2d2d;
+            padding: 0.75rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #404040;
+        }
+
+        .sql-table-name {
+            color: #4ec9b0;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .sql-badge {
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+
+        .badge-master { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+        .badge-domain { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        .badge-reference { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+
+        .sql-body {
+            padding: 1rem;
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        pre {
+            margin: 0;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            color: #d4d4d4;
+        }
+
+        .sql-keyword { color: #569cd6; font-weight: 600; }
+        .sql-type { color: #4ec9b0; }
+        .sql-constraint { color: #c586c0; }
+        .sql-comment { color: #6a9955; font-style: italic; }
+        .sql-string { color: #ce9178; }
+        .sql-number { color: #b5cea8; }
+
+        /* Navigation */
+        .nav {
+            position: sticky;
+            top: 0;
+            background: rgba(255,255,255,0.98);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        .nav-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            justify-content: center;
+            list-style: none;
+        }
+
+        .nav-list a {
+            display: inline-block;
+            padding: 0.4rem 0.8rem;
+            color: var(--gray-700);
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .nav-list a:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Domain Tabs */
+        .domain-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .domain-tab {
+            padding: 0.5rem 1rem;
+            background: var(--gray-100);
+            border: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--gray-600);
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .domain-tab:hover { background: var(--gray-200); }
+        .domain-tab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .domain-content { display: none; }
+        .domain-content.active { display: block; }
+
+        /* Data Sources Table */
+        .sources-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        .sources-table th,
+        .sources-table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .sources-table th {
+            background: var(--gray-50);
+            font-weight: 600;
+            color: var(--gray-700);
+        }
+
+        .sources-table tr:hover {
+            background: var(--gray-50);
+        }
+
+        .priority-badge {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            text-align: center;
+            line-height: 24px;
+            font-weight: 700;
+            font-size: 0.75rem;
+        }
+
+        .tier-authoritative { color: var(--success); font-weight: 600; }
+        .tier-secondary { color: var(--warning); font-weight: 600; }
+        .tier-scraped { color: var(--danger); font-weight: 600; }
+
+        /* Coverage Grid */
+        .coverage-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .coverage-item {
+            background: var(--gray-50);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .coverage-source {
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: 0.5rem;
+        }
+
+        .coverage-count {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .coverage-label {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            text-transform: uppercase;
+        }
+
+        /* Color coding for domains */
+        .bg-core { background: linear-gradient(135deg, #059669, #10b981); }
+        .bg-geo { background: linear-gradient(135deg, #2563eb, #3b82f6); }
+        .bg-enrollment { background: linear-gradient(135deg, #7c3aed, #8b5cf6); }
+        .bg-admissions { background: linear-gradient(135deg, #dc2626, #ef4444); }
+        .bg-financial { background: linear-gradient(135deg, #d97706, #f59e0b); }
+        .bg-academic { background: linear-gradient(135deg, #0891b2, #06b6d4); }
+        .bg-studentlife { background: linear-gradient(135deg, #ec4899, #f472b6); }
+        .bg-athletics { background: linear-gradient(135deg, #f97316, #fb923c); }
+        .bg-outcomes { background: linear-gradient(135deg, #4f46e5, #6366f1); }
+        .bg-classification { background: linear-gradient(135deg, #14b8a6, #2dd4bf); }
+        .bg-urls { background: linear-gradient(135deg, #0ea5e9, #38bdf8); }
+        .bg-systems { background: linear-gradient(135deg, #84cc16, #a3e635); }
+        .bg-dataquality { background: linear-gradient(135deg, #64748b, #94a3b8); }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: rgba(255,255,255,0.7);
+            font-size: 0.85rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            header h1 { font-size: 1.75rem; }
+            .stats-bar { gap: 1rem; }
+            .stat { padding: 0.75rem 1.25rem; }
+            .stat-value { font-size: 1.75rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Prepasaur Database Schema</h1>
+            <p>Comprehensive normalized PostgreSQL schema capturing ALL data from IPEDS, CDS, College Scorecard, and Athletics with complete data attribution</p>
+            <div class="stats-bar">
+                <div class="stat">
+                    <div class="stat-value">13</div>
+                    <div class="stat-label">Domains</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">35+</div>
+                    <div class="stat-label">Tables</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">400+</div>
+                    <div class="stat-label">Columns</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">100%</div>
+                    <div class="stat-label">Attribution</div>
+                </div>
+            </div>
+        </header>
+
+        <nav class="nav">
+            <ul class="nav-list">
+                <li><a href="#coverage">Data Coverage</a></li>
+                <li><a href="#domains">Domains</a></li>
+                <li><a href="#tables">Table DDL</a></li>
+                <li><a href="#sources">Data Sources</a></li>
+                <li><a href="#attribution">Attribution</a></li>
+            </ul>
+        </nav>
+
+        <!-- Data Coverage Section -->
+        <section id="coverage" class="section">
+            <div class="section-header">
+                <div class="section-icon" style="background: linear-gradient(135deg, #059669, #10b981);">
+                    <span style="color: white;">&#128202;</span>
+                </div>
+                <div>
+                    <h2 class="section-title">Data Coverage</h2>
+                    <p class="section-subtitle">What this schema captures from each source</p>
+                </div>
+            </div>
+
+            <div class="coverage-grid">
+                <div class="coverage-item">
+                    <div class="coverage-source">IPEDS HD</div>
+                    <div class="coverage-count">70+</div>
+                    <div class="coverage-label">Directory fields</div>
+                </div>
+                <div class="coverage-item">
+                    <div class="coverage-source">IPEDS IC</div>
+                    <div class="coverage-count">50+</div>
+                    <div class="coverage-label">Inst. characteristics</div>
+                </div>
+                <div class="coverage-item">
+                    <div class="coverage-source">IPEDS ADM</div>
+                    <div class="coverage-count">30+</div>
+                    <div class="coverage-label">Admissions fields</div>
+                </div>
+                <div class="coverage-item">
+                    <div class="coverage-source">IPEDS EF</div>
+                    <div class="coverage-count">40+</div>
+                    <div class="coverage-label">Enrollment fields</div>
+                </div>
+                <div class="coverage-item">
+                    <div class="coverage-source">IPEDS GR/OM</div>
+                    <div class="coverage-count">25+</div>
+                    <div class="coverage-label">Graduation fields</div>
+                </div>
+                <div class="coverage-item">
+                    <div class="coverage-source">IPEDS SFA</div>
+                    <div class="coverage-count">35+</div>
+                    <div class="coverage-label">Financial aid fields</div>
+                </div>
+                <div class="coverage-item">
+                    <div class="coverage-source">CDS A-J</div>
+                    <div class="coverage-count">150+</div>
+                    <div class="coverage-label">Common Data Set</div>
+                </div>
+                <div class="coverage-item">
+                    <div class="coverage-source">Scorecard</div>
+                    <div class="coverage-count">50+</div>
+                    <div class="coverage-label">Outcomes metrics</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Domains Section -->
+        <section id="domains" class="section">
+            <div class="section-header">
+                <div class="section-icon" style="background: linear-gradient(135deg, #7c3aed, #a78bfa);">
+                    <span style="color: white;">&#128451;</span>
+                </div>
+                <div>
+                    <h2 class="section-title">Domain Organization</h2>
+                    <p class="section-subtitle">13 logical domains containing 35+ tables</p>
+                </div>
+            </div>
+
+            <div class="domains-grid">
+                <!-- Domain 1: Core Identity -->
+                <div class="domain-card">
+                    <div class="domain-header">
+                        <div class="domain-icon bg-core">&#127979;</div>
+                        <div class="domain-name">1. Core Identity</div>
+                    </div>
+                    <div class="domain-tables">
+                        <div class="table-item master">institutions</div>
+                        <div class="table-item">institution_identifiers</div>
+                        <div class="table-item">institution_names</div>
+                    </div>
+                </div>
+
+                <!-- Domain 2: Geographic -->
+                <div class="domain-card">
+                    <div class="domain-header">
+                        <div class="domain-icon bg-geo">&#127758;</div>
+                        <div class="domain-name">2. Geographic</div>
+                    </div>
+                    <div class="domain-tables">
+                        <div class="table-item">institution_locations</div>
+                        <div class="table-item reference">locale_codes</div>
+                        <div class="table-item reference">metro_areas</div>
+                    </div>
+                </div>
+
+                <!-- Domain 3: Enrollment -->
+                <div class="domain-card">
+                    <div class="domain-header">
+                        <div class="domain-icon bg-enrollment">&#128101;</div>
+                        <div class="domain-name">3. Enrollment</div>
+                    </div>
+                    <div class="domain-tables">
+                        <div class="table-item">enrollment_summary</div>
+                        <div class="table-item">enrollment_demographics</div>
+                        <div class="table-item">enrollment_residency</div>
+                    </div>
+                </div>
+
+                <!-- Domain 4: Admissions -->
+                <div class="domain-card">
+                    <div class="domain-header">
+                        <div class="domain-icon bg-admissions">&#127891;</div>
+                        <div class="domain-name">4. Admissions</div>
+                    </div>
+                    <div class="domain-tables">
+                        <div class="table-item">admissions_stats</div>
+                        <div class="table-item">admissions_by_residency</div>
+                        <div class="table-item">admissions_testing</div>
+                        <div class="table-item">admissions_gpa</div>
+                        <div class="table-item">admissions_policies</div>
+                    </div>
+                </div>
+
+                <!-- Domain 5: Financial -->
+                <div class="domain-card">
+                    <div class="domain-header">
+                        <div class="domain-icon bg-financial">&#128176;</div>
+                        <div class="domain-name">5. Financial</div>
+                    </div>
+                    <div class="domain-tables">
+                        <div class="table-item">tuition_costs</div>
+                        <div class="table-item">room_board_costs</div>
+                        <div class="table-item">financial_aid</div>
+                    </div>
+                </div>
+
+                <!-- Domain 6: Academic -->
+                <div class="domain-card">
+                    <div class="domain-header">
+                        <div class="domain-icon bg-academic">&#128218;</div>
+                        <div class="domain-name">6. Academic</div>
+                    </div>
+                    <div class="domain-tables">
+                        <div class="table-item">academic_programs</div>
+                        <div class="table-item">degree_completions</div>
+                        <div class="table-item">faculty_stats</div>
+                        <div class="table-item reference">cip_codes</div>
+                    </div>
+                </div>
+
+                <!-- Domain 7: Student Life -->
+                <div class="domain-card">
+                    <div class="domain-header">
+                        <div class="domain-icon bg-studentlife">&#127968;</div>
+                        <div class="domain-name">7. Student Life</div>
+                    </div>
+                    <div class="domain-tables">
+                        <div class="table-item">housing_info</div>
+                        <div class="table-item">student_services</div>
+                    </div>
+                </div>
+
+                <!-- Domain 8: Athletics -->
+                <div class="domain-card">
+                    <div class="domain-header">
+                        <div class="domain-icon bg-athletics">&#127944;</div>
+                        <div class="domain-name">8. Athletics</div>
+                    </div>
+                    <div class="domain-tables">
+                        <div class="table-item">athletics_membership</div>
+                        <div class="table-item reference">athletic_conferences</div>
+                    </div>
+                </div>
+
+                <!-- Domain 9: Outcomes -->
+                <div class="domain-card">
+                    <div class="domain-header">
+                        <div class="domain-icon bg-outcomes">&#127942;</div>
+                        <div class="domain-name">9. Outcomes</div>
+                    </div>
+                    <div class="domain-tables">
+                        <div class="table-item">graduation_rates</div>
+                        <div class="table-item">retention_rates</div>
+                        <div class="table-item">earnings_outcomes</div>
+                    </div>
+                </div>
+
+                <!-- Domain 10: Classification -->
+                <div class="domain-card">
+                    <div class="domain-header">
+                        <div class="domain-icon bg-classification">&#127991;</div>
+                        <div class="domain-name">10. Classification</div>
+                    </div>
+                    <div class="domain-tables">
+                        <div class="table-item">institution_designations</div>
+                        <div class="table-item">carnegie_classifications</div>
+                        <div class="table-item">religious_affiliations</div>
+                    </div>
+                </div>
+
+                <!-- Domain 11: URLs -->
+                <div class="domain-card">
+                    <div class="domain-header">
+                        <div class="domain-icon bg-urls">&#128279;</div>
+                        <div class="domain-name">11. Institution URLs</div>
+                    </div>
+                    <div class="domain-tables">
+                        <div class="table-item">institution_urls</div>
+                    </div>
+                </div>
+
+                <!-- Domain 12: Systems -->
+                <div class="domain-card">
+                    <div class="domain-header">
+                        <div class="domain-icon bg-systems">&#127970;</div>
+                        <div class="domain-name">12. System Membership</div>
+                    </div>
+                    <div class="domain-tables">
+                        <div class="table-item">institution_systems</div>
+                    </div>
+                </div>
+
+                <!-- Domain 13: Data Quality -->
+                <div class="domain-card">
+                    <div class="domain-header">
+                        <div class="domain-icon bg-dataquality">&#128202;</div>
+                        <div class="domain-name">13. Data Quality</div>
+                    </div>
+                    <div class="domain-tables">
+                        <div class="table-item reference">data_sources</div>
+                        <div class="table-item">data_lineage</div>
+                        <div class="table-item">data_overrides</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 1.5rem; display: flex; gap: 2rem; justify-content: center; font-size: 0.85rem; color: var(--gray-500);">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="width: 10px; height: 10px; border-radius: 50%; background: var(--success);"></span>
+                    Master table
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="width: 10px; height: 10px; border-radius: 50%; background: var(--primary);"></span>
+                    Domain table
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="width: 10px; height: 10px; border-radius: 50%; background: var(--warning);"></span>
+                    Reference table
+                </div>
+            </div>
+        </section>
+
+        <!-- Table DDL Section -->
+        <section id="tables" class="section">
+            <div class="section-header">
+                <div class="section-icon" style="background: linear-gradient(135deg, #0891b2, #06b6d4);">
+                    <span style="color: white;">&#128196;</span>
+                </div>
+                <div>
+                    <h2 class="section-title">Table Definitions (SQL DDL)</h2>
+                    <p class="section-subtitle">Complete CREATE TABLE statements for all tables</p>
+                </div>
+            </div>
+
+            <div class="domain-tabs">
+                <button class="domain-tab active" onclick="showDomainTables('core')">Core Identity</button>
+                <button class="domain-tab" onclick="showDomainTables('geo')">Geographic</button>
+                <button class="domain-tab" onclick="showDomainTables('enrollment')">Enrollment</button>
+                <button class="domain-tab" onclick="showDomainTables('admissions')">Admissions</button>
+                <button class="domain-tab" onclick="showDomainTables('financial')">Financial</button>
+                <button class="domain-tab" onclick="showDomainTables('academic')">Academic</button>
+                <button class="domain-tab" onclick="showDomainTables('studentlife')">Student Life</button>
+                <button class="domain-tab" onclick="showDomainTables('athletics')">Athletics</button>
+                <button class="domain-tab" onclick="showDomainTables('outcomes')">Outcomes</button>
+                <button class="domain-tab" onclick="showDomainTables('classification')">Classification</button>
+                <button class="domain-tab" onclick="showDomainTables('dataquality')">Data Quality</button>
+            </div>
+
+            <!-- Core Identity Tables -->
+            <div id="domain-core" class="domain-content active">
+                <div class="sql-container">
+                    <div class="sql-header">
+                        <span class="sql-table-name">institutions</span>
+                        <span class="sql-badge badge-master">Master Table</span>
+                    </div>
+                    <div class="sql-body">
+                        <pre><span class="sql-keyword">CREATE TABLE</span> institutions (
+    institution_id <span class="sql-type">SERIAL</span> <span class="sql-constraint">PRIMARY KEY</span>,
+    ipeds_id <span class="sql-type">INTEGER</span> <span class="sql-constraint">UNIQUE NOT NULL</span>,
+    opeid <span class="sql-type">VARCHAR(10)</span>,
+    ope6_id <span class="sql-type">VARCHAR(6)</span>,
+    name <span class="sql-type">TEXT</span> <span class="sql-constraint">NOT NULL</span>,
+    alias <span class="sql-type">TEXT</span>,
+    institution_control <span class="sql-type">VARCHAR(50)</span> <span class="sql-constraint">NOT NULL</span>,  <span class="sql-comment">-- Public, Private nonprofit, Private for-profit</span>
+    sector_code <span class="sql-type">INTEGER</span>,
+    level_code <span class="sql-type">INTEGER</span>,
+    highest_degree <span class="sql-type">VARCHAR(50)</span>,
+    degree_granting <span class="sql-type">BOOLEAN</span>,
+    is_active <span class="sql-type">BOOLEAN</span> <span class="sql-constraint">DEFAULT TRUE</span>,
+    status <span class="sql-type">VARCHAR(20)</span>,  <span class="sql-comment">-- Active, Inactive, Closed</span>
+    death_year <span class="sql-type">INTEGER</span>,
+    closed_date <span class="sql-type">DATE</span>,
+    created_at <span class="sql-type">TIMESTAMPTZ</span> <span class="sql-constraint">DEFAULT NOW()</span>,
+    updated_at <span class="sql-type">TIMESTAMPTZ</span> <span class="sql-constraint">DEFAULT NOW()</span>
+);</pre>
+                    </div>
+                </div>
+
+                <div class="sql-container">
+                    <div class="sql-header">
+                        <span class="sql-table-name">institution_identifiers</span>
+                        <span class="sql-badge badge-domain">Domain Table</span>
+                    </div>
+                    <div class="sql-body">
+                        <pre><span class="sql-keyword">CREATE TABLE</span> institution_identifiers (
+    id <span class="sql-type">SERIAL</span> <span class="sql-constraint">PRIMARY KEY</span>,
+    institution_id <span class="sql-type">INTEGER</span> <span class="sql-constraint">NOT NULL REFERENCES</span> institutions(institution_id),
+    identifier_type <span class="sql-type">VARCHAR(50)</span> <span class="sql-constraint">NOT NULL</span>,  <span class="sql-comment">-- ipeds, opeid, ope6, ein, uei, duns</span>
+    identifier_value <span class="sql-type">VARCHAR(50)</span> <span class="sql-constraint">NOT NULL</span>,
+    is_primary <span class="sql-type">BOOLEAN</span> <span class="sql-constraint">DEFAULT FALSE</span>,
+    valid_from <span class="sql-type">DATE</span>,
+    valid_to <span class="sql-type">DATE</span>,
+    <span class="sql-constraint">UNIQUE</span>(institution_id, identifier_type, identifier_value)
+);</pre>
+                    </div>
+                </div>
+
+                <div class="sql-container">
+                    <div class="sql-header">
+                        <span class="sql-table-name">institution_names</span>
+                        <span class="sql-badge badge-domain">Domain Table</span>
+                    </div>
+                    <div class="sql-body">
+                        <pre><span class="sql-keyword">CREATE TABLE</span> institution_names (
+    id <span class="sql-type">SERIAL</span> <span class="sql-constraint">PRIMARY KEY</span>,
+    institution_id <span class="sql-type">INTEGER</span> <span class="sql-constraint">NOT NULL REFERENCES</span> institutions(institution_id),
+    name_type <span class="sql-type">VARCHAR(20)</span> <span class="sql-constraint">NOT NULL</span>,  <span class="sql-comment">-- official, former, alias, dba</span>
+    name <span class="sql-type">TEXT</span> <span class="sql-constraint">NOT NULL</span>,
+    effective_date <span class="sql-type">DATE</span>,
+    end_date <span class="sql-type">DATE</span>,
+    data_year <span class="sql-type">INTEGER</span> <span class="sql-constraint">NOT NULL</span>,
+    source <span class="sql-type">VARCHAR(50)</span> <span class="sql-constraint">NOT NULL</span>
+);</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Geographic Tables -->
+            <div id="domain-geo" class="domain-content">
+                <div class="sql-container">
+                    <div class="sql-header">
+                        <span class="sql-table-name">institution_locations</span>
+                        <span class="sql-badge badge-domain">Domain Table</span>
+                    </div>
+                    <div class="sql-body">
+                        <pre><span class="sql-keyword">CREATE TABLE</span> institution_locations (
+    id <span class="sql-type">SERIAL</span> <span class="sql-constraint">PRIMARY KEY</span>,
+    institution_id <span class="sql-type">INTEGER</span> <span class="sql-constraint">NOT NULL REFERENCES</span> institutions(institution_id),
+
+    <span class="sql-comment">-- Address</span>
+    address <span class="sql-type">TEXT</span>,
+    city <span class="sql-type">VARCHAR(100)</span> <span class="sql-constraint">NOT NULL</span>,
+    state_code <span class="sql-type">CHAR(2)</span> <span class="sql-constraint">NOT NULL</span>,
+    state_fips <span class="sql-type">INTEGER</span>,
+    zip_code <span class="sql-type">VARCHAR(10)</span>,
+    county_name <span class="sql-type">VARCHAR(100)</span>,
+    county_fips <span class="sql-type">VARCHAR(5)</span>,
+    country <span class="sql-type">VARCHAR(100)</span> <span class="sql-constraint">DEFAULT</span> <span class="sql-string">'United States'</span>,
+
+    <span class="sql-comment">-- Coordinates</span>
+    latitude <span class="sql-type">NUMERIC(9,6)</span>,
+    longitude <span class="sql-type">NUMERIC(10,6)</span>,
+
+    <span class="sql-comment">-- NCES Locale (11-43 codes)</span>
+    locale_code <span class="sql-type">INTEGER</span>,
+    locale_type <span class="sql-type">VARCHAR(20)</span>,  <span class="sql-comment">-- city, suburb, town, rural</span>
+    locale_size <span class="sql-type">VARCHAR(20)</span>,  <span class="sql-comment">-- large, midsize, small, fringe, distant, remote</span>
+
+    <span class="sql-comment">-- Statistical Areas</span>
+    cbsa_code <span class="sql-type">VARCHAR(5)</span>,
+    cbsa_name <span class="sql-type">VARCHAR(200)</span>,
+    cbsa_type <span class="sql-type">VARCHAR(20)</span>,  <span class="sql-comment">-- metropolitan, micropolitan</span>
+    csa_code <span class="sql-type">VARCHAR(5)</span>,
+    csa_name <span class="sql-type">VARCHAR(200)</span>,
+
+    <span class="sql-comment">-- Political</span>
+    congressional_district <span class="sql-type">VARCHAR(10)</span>,
+    region_code <span class="sql-type">INTEGER</span>,
+    region_name <span class="sql-type">VARCHAR(50)</span>,
+
+    <span class="sql-comment">-- Attribution</span>
+    data_year <span class="sql-type">INTEGER</span> <span class="sql-constraint">NOT NULL</span>,
+    source <span class="sql-type">VARCHAR(50)</span> <span class="sql-constraint">NOT NULL DEFAULT</span> <span class="sql-string">'ipeds_hd'</span>,
+    confidence <span class="sql-type">VARCHAR(20)</span> <span class="sql-constraint">DEFAULT</span> <span class="sql-string">'high'</span>,
+    created_at <span class="sql-type">TIMESTAMPTZ</span> <span class="sql-constraint">DEFAULT NOW()</span>,
+    updated_at <span class="sql-type">TIMESTAMPTZ</span> <span class="sql-constraint">DEFAULT NOW()</span>,
+
+    <span class="sql-constraint">UNIQUE</span>(institution_id, data_year)
+);</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enrollment Tables -->
+            <div id="domain-enrollment" class="domain-content">
+                <div class="sql-container">
+                    <div class="sql-header">
+                        <span class="sql-table-name">enrollment_summary</span>
+                        <span class="sql-badge badge-domain">Domain Table</span>
+                    </div>
+                    <div class="sql-body">
+                        <pre><span class="sql-keyword">CREATE TABLE</span> enrollment_summary (
+    id <span class="sql-type">SERIAL</span> <span class="sql-constraint">PRIMARY KEY</span>,
+    institution_id <span class="sql-type">INTEGER</span> <span class="sql-constraint">NOT NULL REFERENCES</span> institutions(institution_id),
+
+    <span class="sql-comment">-- Totals</span>
+    total_enrollment <span class="sql-type">INTEGER</span>,
+    undergraduate_enrollment <span class="sql-type">INTEGER</span>,
+    graduate_enrollment <span class="sql-type">INTEGER</span>,
+
+    <span class="sql-comment">-- Full-time / Part-time</span>
+    full_time_total <span class="sql-type">INTEGER</span>,
+    part_time_total <span class="sql-type">INTEGER</span>,
+    full_time_undergrad <span class="sql-type">INTEGER</span>,
+    part_time_undergrad <span class="sql-type">INTEGER</span>,
+    full_time_grad <span class="sql-type">INTEGER</span>,
+    part_time_grad <span class="sql-type">INTEGER</span>,
+
+    <span class="sql-comment">-- Gender</span>
+    enrollment_men <span class="sql-type">INTEGER</span>,
+    enrollment_women <span class="sql-type">INTEGER</span>,
+    enrollment_other_gender <span class="sql-type">INTEGER</span>,
+    enrollment_unknown_gender <span class="sql-type">INTEGER</span>,
+    percent_women <span class="sql-type">NUMERIC(5,2)</span>,
+
+    <span class="sql-comment">-- First-time First-year</span>
+    ftfy_total <span class="sql-type">INTEGER</span>,
+    ftfy_men <span class="sql-type">INTEGER</span>,
+    ftfy_women <span class="sql-type">INTEGER</span>,
+
+    <span class="sql-comment">-- Attribution</span>
+    data_year <span class="sql-type">INTEGER</span> <span class="sql-constraint">NOT NULL</span>,
+    source <span class="sql-type">VARCHAR(50)</span> <span class="sql-constraint">NOT NULL</span>,
+    source_year <span class="sql-type">INTEGER</span>,
+    confidence <span class="sql-type">VARCHAR(20)</span> <span class="sql-constraint">DEFAULT</span> <span class="sql-string">'high'</span>,
+    created_at <span class="sql-type">TIMESTAMPTZ</span> <span class="sql-constraint">DEFAULT NOW()</span>,
+    updated_at <span class="sql-type">TIMESTAMPTZ</span> <span class="sql-constraint">DEFAULT NOW()</span>,
+
+    <span class="sql-constraint">UNIQUE</span>(institution_id, data_year, source)
+);</pre>
+                    </div>
+                </div>
+
+                <div class="sql-container">
+                    <div class="sql-header">
+                        <span class="sql-table-name">enrollment_demographics</span>
+                        <span class="sql-badge badge-domain">Domain Table</span>
+                    </div>
+                    <div class="sql-body">
+                        <pre><span class="sql-keyword">CREATE TABLE</span> enrollment_demographics (
+    id <span class="sql-type">SERIAL</span> <span class="sql-constraint">PRIMARY KEY</span>,
+    institution_id <span class="sql-type">INTEGER</span> <span class="sql-constraint">NOT NULL REFERENCES</span> institutions(institution_id),
+
+    <span class="sql-comment">-- Race/Ethnicity counts</span>
+    enrollment_white <span class="sql-type">INTEGER</span>,
+    enrollment_black <span class="sql-type">INTEGER</span>,
+    enrollment_hispanic <span class="sql-type">INTEGER</span>,
+    enrollment_asian <span class="sql-type">INTEGER</span>,
+    enrollment_aian <span class="sql-type">INTEGER</span>,  <span class="sql-comment">-- American Indian/Alaska Native</span>
+    enrollment_nhpi <span class="sql-type">INTEGER</span>,  <span class="sql-comment">-- Native Hawaiian/Pacific Islander</span>
+    enrollment_two_or_more <span class="sql-type">INTEGER</span>,
+    enrollment_unknown_race <span class="sql-type">INTEGER</span>,
+    enrollment_nonresident_alien <span class="sql-type">INTEGER</span>,
+
+    <span class="sql-comment">-- Percentages</span>
+    percent_white <span class="sql-type">NUMERIC(5,2)</span>,
+    percent_black <span class="sql-type">NUMERIC(5,2)</span>,
+    percent_hispanic <span class="sql-type">NUMERIC(5,2)</span>,
+    percent_asian <span class="sql-type">NUMERIC(5,2)</span>,
+    percent_underrepresented_minority <span class="sql-type">NUMERIC(5,2)</span>,
+    percent_international <span class="sql-type">NUMERIC(5,2)</span>,
+
+    <span class="sql-comment">-- Attribution</span>
+    data_year <span class="sql-type">INTEGER</span> <span class="sql-constraint">NOT NULL</span>,
+    source <span class="sql-type">VARCHAR(50)</span> <span class="sql-constraint">NOT NULL</span>,
+    <span class="sql-constraint">UNIQUE</span>(institution_id, data_year, source)
+);</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admissions Tables -->
+            <div id="domain-admissions" class="domain-content">
+                <div class="sql-container">
+                    <div class="sql-header">
+                        <span class="sql-table-name">admissions_stats</span>
+                        <span class="sql-badge badge-domain">Domain Table</span>
+                    </div>
+                    <div class="sql-body">
+                        <pre><span class="sql-keyword">CREATE TABLE</span> admissions_stats (
+    id <span class="sql-type">SERIAL</span> <span class="sql-constraint">PRIMARY KEY</span>,
+    institution_id <span class="sql-type">INTEGER</span> <span class="sql-constraint">NOT NULL REFERENCES</span> institutions(institution_id),
+
+    <span class="sql-comment">-- Total applications</span>
+    applications_total <span class="sql-type">INTEGER</span>,
+    applications_men <span class="sql-type">INTEGER</span>,
+    applications_women <span class="sql-type">INTEGER</span>,
+
+    <span class="sql-comment">-- Admitted</span>
+    admitted_total <span class="sql-type">INTEGER</span>,
+    admitted_men <span class="sql-type">INTEGER</span>,
+    admitted_women <span class="sql-type">INTEGER</span>,
+
+    <span class="sql-comment">-- Enrolled</span>
+    enrolled_total <span class="sql-type">INTEGER</span>,
+    enrolled_men <span class="sql-type">INTEGER</span>,
+    enrolled_women <span class="sql-type">INTEGER</span>,
+    enrolled_full_time <span class="sql-type">INTEGER</span>,
+    enrolled_part_time <span class="sql-type">INTEGER</span>,
+
+    <span class="sql-comment">-- Rates</span>
+    admission_rate <span class="sql-type">NUMERIC(5,2)</span>,
+    yield_rate <span class="sql-type">NUMERIC(5,2)</span>,
+
+    <span class="sql-comment">-- Attribution</span>
+    data_year <span class="sql-type">INTEGER</span> <span class="sql-constraint">NOT NULL</span>,
+    source <span class="sql-type">VARCHAR(50)</span> <span class="sql-constraint">NOT NULL</span>,
+    <span class="sql-constraint">UNIQUE</span>(institution_id, data_year, source)
+);</pre>
+                    </div>
+                </div>
+
+                <div class="sql-container">
+                    <div class="sql-header">
+                        <span class="sql-table-name">admissions_testing</span>
+                        <span class="sql-badge badge-domain">Domain Table</span>
+                    </div>
+                    <div class="sql-body">
+                        <pre><span class="sql-keyword">CREATE TABLE</span> admissions_testing (
+    id <span class="sql-type">SERIAL</span> <span class="sql-constraint">PRIMARY KEY</span>,
+    institution_id <span class="sql-type">INTEGER</span> <span class="sql-constraint">NOT NULL REFERENCES</span> institutions(institution_id),
+
+    <span class="sql-comment">-- SAT Scores</span>
+    sat_ebrw_25th <span class="sql-type">INTEGER</span>,
+    sat_ebrw_50th <span class="sql-type">INTEGER</span>,
+    sat_ebrw_75th <span class="sql-type">INTEGER</span>,
+    sat_math_25th <span class="sql-type">INTEGER</span>,
+    sat_math_50th <span class="sql-type">INTEGER</span>,
+    sat_math_75th <span class="sql-type">INTEGER</span>,
+    sat_composite_25th <span class="sql-type">INTEGER</span>,
+    sat_composite_50th <span class="sql-type">INTEGER</span>,
+    sat_composite_75th <span class="sql-type">INTEGER</span>,
+
+    <span class="sql-comment">-- ACT Scores</span>
+    act_composite_25th <span class="sql-type">INTEGER</span>,
+    act_composite_50th <span class="sql-type">INTEGER</span>,
+    act_composite_75th <span class="sql-type">INTEGER</span>,
+    act_english_25th <span class="sql-type">INTEGER</span>,
+    act_english_75th <span class="sql-type">INTEGER</span>,
+    act_math_25th <span class="sql-type">INTEGER</span>,
+    act_math_75th <span class="sql-type">INTEGER</span>,
+    act_reading_25th <span class="sql-type">INTEGER</span>,
+    act_reading_75th <span class="sql-type">INTEGER</span>,
+    act_science_25th <span class="sql-type">INTEGER</span>,
+    act_science_75th <span class="sql-type">INTEGER</span>,
+
+    <span class="sql-comment">-- Submission rates</span>
+    percent_submitting_sat <span class="sql-type">NUMERIC(5,2)</span>,
+    percent_submitting_act <span class="sql-type">NUMERIC(5,2)</span>,
+    num_submitting_sat <span class="sql-type">INTEGER</span>,
+    num_submitting_act <span class="sql-type">INTEGER</span>,
+
+    <span class="sql-comment">-- Attribution</span>
+    data_year <span class="sql-type">INTEGER</span> <span class="sql-constraint">NOT NULL</span>,
+    source <span class="sql-type">VARCHAR(50)</span> <span class="sql-constraint">NOT NULL</span>,
+    <span class="sql-constraint">UNIQUE</span>(institution_id, data_year, source)
+);</pre>
+                    </div>
+                </div>
+
+                <div class="sql-container">
+                    <div class="sql-header">
+                        <span class="sql-table-name">admissions_gpa</span>
+                        <span class="sql-badge badge-domain">Domain Table</span>
+                    </div>
+                    <div class="sql-body">
+                        <pre><span class="sql-keyword">CREATE TABLE</span> admissions_gpa (
+    id <span class="sql-type">SERIAL</span> <span class="sql-constraint">PRIMARY KEY</span>,
+    institution_id <span class="sql-type">INTEGER</span> <span class="sql-constraint">NOT NULL REFERENCES</span> institutions(institution_id),
+
+    <span class="sql-comment">-- GPA distribution</span>
+    avg_gpa <span class="sql-type">NUMERIC(4,2)</span>,
+    percent_gpa_4_0 <span class="sql-type">NUMERIC(5,2)</span>,
+    percent_gpa_3_75_to_3_99 <span class="sql-type">NUMERIC(5,2)</span>,
+    percent_gpa_3_50_to_3_74 <span class="sql-type">NUMERIC(5,2)</span>,
+    percent_gpa_3_25_to_3_49 <span class="sql-type">NUMERIC(5,2)</span>,
+    percent_gpa_3_00_to_3_24 <span class="sql-type">NUMERIC(5,2)</span>,
+    percent_gpa_2_50_to_2_99 <span class="sql-type">NUMERIC(5,2)</span>,
+    percent_gpa_2_00_to_2_49 <span class="sql-type">NUMERIC(5,2)</span>,
+    percent_gpa_below_2_00 <span class="sql-type">NUMERIC(5,2)</span>,
+
+    <span class="sql-comment">-- High school class rank</span>
+    percent_top_tenth <span class="sql-type">NUMERIC(5,2)</span>,
+    percent_top_quarter <span class="sql-type">NUMERIC(5,2)</span>,
+    percent_top_half <span class="sql-type">NUMERIC(5,2)</span>,
+
+    <span class="sql-comment">-- Attribution</span>
+    data_year <span class="sql-type">INTEGER</span> <span class="sql-constraint">NOT NULL</span>,
+    source <span class="sql-type">VARCHAR(50)</span> <span class="sql-constraint">NOT NULL</span>,
+    <span class="sql-constraint">UNIQUE</span>(institution_id, data_year, source)
+);</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Financial Tables -->
+            <div id="domain-financial" class="domain-content">
+                <div class="sql-container">
+                    <div class="sql-header">
+                        <span class="sql-table-name">tuition_costs</span>
+                        <span class="sql-badge badge-domain">Domain Table</span>
+                    </div>
+                    <div class="sql-body">
+                        <pre><span class="sql-keyword">CREATE TABLE</span> tuition_costs (
+    id <span class="sql-type">SERIAL</span> <span class="sql-constraint">PRIMARY KEY</span>,
+    institution_id <span class="sql-type">INTEGER</span> <span class="sql-constraint">NOT NULL REFERENCES</span> institutions(institution_id),
+
+    <span class="sql-comment">-- In-state</span>
+    tuition_in_state <span class="sql-type">INTEGER</span>,
+    fees_in_state <span class="sql-type">INTEGER</span>,
+    tuition_fees_in_state <span class="sql-type">INTEGER</span>,
+
+    <span class="sql-comment">-- Out-of-state</span>
+    tuition_out_state <span class="sql-type">INTEGER</span>,
+    fees_out_state <span class="sql-type">INTEGER</span>,
+    tuition_fees_out_state <span class="sql-type">INTEGER</span>,
+
+    <span class="sql-comment">-- Per credit</span>
+    per_credit_in_state <span class="sql-type">INTEGER</span>,
+    per_credit_out_state <span class="sql-type">INTEGER</span>,
+
+    <span class="sql-comment">-- Graduate</span>
+    grad_tuition_in_state <span class="sql-type">INTEGER</span>,
+    grad_tuition_out_state <span class="sql-type">INTEGER</span>,
+
+    <span class="sql-comment">-- Attribution</span>
+    data_year <span class="sql-type">INTEGER</span> <span class="sql-constraint">NOT NULL</span>,
+    source <span class="sql-type">VARCHAR(50)</span> <span class="sql-constraint">NOT NULL</span>,
+    <span class="sql-constraint">UNIQUE</span>(institution_id, data_year, source)
+);</pre>
+                    </div>
+                </div>
+
+                <div class="sql-container">
+                    <div class="sql-header">
+                        <span class="sql-table-name">financial_aid</span>
+                        <span class="sql-badge badge-domain">Domain Table</span>
+                    </div>
+                    <div class="sql-body">
+                        <pre><span class="sql-keyword">CREATE TABLE</span> financial_aid (
+    id <span class="sql-type">SERIAL</span> <span class="sql-constraint">PRIMARY KEY</span>,
+    institution_id <span class="sql-type">INTEGER</span> <span class="sql-constraint">NOT NULL REFERENCES</span> institutions(institution_id),
+
+    <span class="sql-comment">-- Need-based aid</span>
+    percent_receiving_any_aid <span class="sql-type">NUMERIC(5,2)</span>,
+    percent_receiving_need_based_aid <span class="sql-type">NUMERIC(5,2)</span>,
+    avg_need_based_grant <span class="sql-type">INTEGER</span>,
+    avg_need_based_loan <span class="sql-type">INTEGER</span>,
+    percent_need_met <span class="sql-type">NUMERIC(5,2)</span>,
+    meets_full_need <span class="sql-type">BOOLEAN</span>,
+
+    <span class="sql-comment">-- Merit aid</span>
+    percent_receiving_merit_aid <span class="sql-type">NUMERIC(5,2)</span>,
+    avg_merit_aid_amount <span class="sql-type">INTEGER</span>,
+    num_merit_aid_recipients <span class="sql-type">INTEGER</span>,
+
+    <span class="sql-comment">-- Pell grants</span>
+    percent_pell_recipients <span class="sql-type">NUMERIC(5,2)</span>,
+
+    <span class="sql-comment">-- Net price by income</span>
+    avg_net_price <span class="sql-type">INTEGER</span>,
+    avg_net_price_0_30k <span class="sql-type">INTEGER</span>,
+    avg_net_price_30k_48k <span class="sql-type">INTEGER</span>,
+    avg_net_price_48k_75k <span class="sql-type">INTEGER</span>,
+    avg_net_price_75k_110k <span class="sql-type">INTEGER</span>,
+    avg_net_price_110k_plus <span class="sql-type">INTEGER</span>,
+
+    <span class="sql-comment">-- Attribution</span>
+    data_year <span class="sql-type">INTEGER</span> <span class="sql-constraint">NOT NULL</span>,
+    source <span class="sql-type">VARCHAR(50)</span> <span class="sql-constraint">NOT NULL</span>,
+    <span class="sql-constraint">UNIQUE</span>(institution_id, data_year, source)
+);</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Academic Tables -->
+            <div id="domain-academic" class="domain-content">
+                <div class="sql-container">
+                    <div class="sql-header">
+                        <span class="sql-table-name">academic_programs</span>
+                        <span class="sql-badge badge-domain">Domain Table</span>
+                    </div>
+                    <div class="sql-body">
+                        <pre><span class="sql-keyword">CREATE TABLE</span> academic_programs (
+    id <span class="sql-type">SERIAL</span> <span class="sql-constraint">PRIMARY KEY</span>,
+    institution_id <span class="sql-type">INTEGER</span> <span class="sql-constraint">NOT NULL REFERENCES</span> institutions(institution_id),
+    cip_code <span class="sql-type">VARCHAR(10)</span> <span class="sql-constraint">NOT NULL</span>,
+    cip_title <span class="sql-type">VARCHAR(200)</span>,
+    degree_level <span class="sql-type">INTEGER</span> <span class="sql-constraint">NOT NULL</span>,  <span class="sql-comment">-- 1=&lt;1yr, 3=Assoc, 5=Bach, 7=Master, 17=Doctorate</span>
+    degree_level_name <span class="sql-type">VARCHAR(50)</span>,
+    major_number <span class="sql-type">VARCHAR(10)</span>,
+    data_year <span class="sql-type">INTEGER</span> <span class="sql-constraint">NOT NULL</span>,
+    source <span class="sql-type">VARCHAR(50)</span> <span class="sql-constraint">NOT NULL</span>,
+    <span class="sql-constraint">UNIQUE</span>(institution_id, cip_code, degree_level, data_year)
+);</pre>
+                    </div>
+                </div>
+
+                <div class="sql-container">
+                    <div class="sql-header">
+                        <span class="sql-table-name">faculty_stats</span>
+                        <span class="sql-badge badge-domain">Domain Table</span>
+                    </div>
+                    <div class="sql-body">
+                        <pre><span class="sql-keyword">CREATE TABLE</span> faculty_stats (
+    id <span class="sql-type">SERIAL</span> <span class="sql-constraint">PRIMARY KEY</span>,
+    institution_id <span class="sql-type">INTEGER</span> <span class="sql-constraint">NOT NULL REFERENCES</span> institutions(institution_id),
+
+    <span class="sql-comment">-- Counts</span>
+    faculty_total <span class="sql-type">INTEGER</span>,
+    faculty_full_time <span class="sql-type">INTEGER</span>,
+    faculty_part_time <span class="sql-type">INTEGER</span>,
+    faculty_tenured <span class="sql-type">INTEGER</span>,
+    faculty_tenure_track <span class="sql-type">INTEGER</span>,
+
+    <span class="sql-comment">-- Credentials</span>
+    percent_faculty_phd <span class="sql-type">NUMERIC(5,2)</span>,
+    percent_faculty_terminal_degree <span class="sql-type">NUMERIC(5,2)</span>,
+
+    <span class="sql-comment">-- Ratios</span>
+    student_faculty_ratio <span class="sql-type">NUMERIC(5,1)</span>,
+
+    <span class="sql-comment">-- Class sizes</span>
+    percent_classes_under_20 <span class="sql-type">NUMERIC(5,2)</span>,
+    percent_classes_20_to_49 <span class="sql-type">NUMERIC(5,2)</span>,
+    percent_classes_50_plus <span class="sql-type">NUMERIC(5,2)</span>,
+    avg_class_size <span class="sql-type">NUMERIC(5,1)</span>,
+
+    <span class="sql-comment">-- Attribution</span>
+    data_year <span class="sql-type">INTEGER</span> <span class="sql-constraint">NOT NULL</span>,
+    source <span class="sql-type">VARCHAR(50)</span> <span class="sql-constraint">NOT NULL</span>,
+    <span class="sql-constraint">UNIQUE</span>(institution_id, data_year, source)
+);</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Student Life Tables -->
+            <div id="domain-studentlife" class="domain-content">
+                <div class="sql-container">
+                    <div class="sql-header">
+                        <span class="sql-table-name">housing_info</span>
+                        <span class="sql-badge badge-domain">Domain Table</span>
+                    </div>
+                    <div class="sql-body">
+                        <pre><span class="sql-keyword">CREATE TABLE</span> housing_info (
+    id <span class="sql-type">SERIAL</span> <span class="sql-constraint">PRIMARY KEY</span>,
+    institution_id <span class="sql-type">INTEGER</span> <span class="sql-constraint">NOT NULL REFERENCES</span> institutions(institution_id),
+
+    <span class="sql-comment">-- Availability</span>
+    housing_offered <span class="sql-type">BOOLEAN</span>,
+    housing_capacity <span class="sql-type">INTEGER</span>,
+    percent_ftfy_on_campus <span class="sql-type">NUMERIC(5,2)</span>,
+    percent_undergrad_on_campus <span class="sql-type">NUMERIC(5,2)</span>,
+    first_year_housing_required <span class="sql-type">BOOLEAN</span>,
+
+    <span class="sql-comment">-- Housing types</span>
+    has_coed_housing <span class="sql-type">BOOLEAN</span>,
+    has_mens_housing <span class="sql-type">BOOLEAN</span>,
+    has_womens_housing <span class="sql-type">BOOLEAN</span>,
+    has_apartments <span class="sql-type">BOOLEAN</span>,
+    has_living_learning <span class="sql-type">BOOLEAN</span>,
+    has_fraternity_sorority_housing <span class="sql-type">BOOLEAN</span>,
+    has_special_housing_disabled <span class="sql-type">BOOLEAN</span>,
+
+    <span class="sql-comment">-- Attribution</span>
+    data_year <span class="sql-type">INTEGER</span> <span class="sql-constraint">NOT NULL</span>,
+    source <span class="sql-type">VARCHAR(50)</span> <span class="sql-constraint">NOT NULL</span>,
+    <span class="sql-constraint">UNIQUE</span>(institution_id, data_year, source)
+);</pre>
+                    </div>
+                </div>
+
+                <div class="sql-container">
+                    <div class="sql-header">
+                        <span class="sql-table-name">student_services</span>
+                        <span class="sql-badge badge-domain">Domain Table</span>
+                    </div>
+                    <div class="sql-body">
+                        <pre><span class="sql-keyword">CREATE TABLE</span> student_services (
+    id <span class="sql-type">SERIAL</span> <span class="sql-constraint">PRIMARY KEY</span>,
+    institution_id <span class="sql-type">INTEGER</span> <span class="sql-constraint">NOT NULL REFERENCES</span> institutions(institution_id),
+
+    <span class="sql-comment">-- Academic services</span>
+    has_academic_counseling <span class="sql-type">BOOLEAN</span>,
+    has_career_counseling <span class="sql-type">BOOLEAN</span>,
+    has_tutoring <span class="sql-type">BOOLEAN</span>,
+    has_writing_center <span class="sql-type">BOOLEAN</span>,
+
+    <span class="sql-comment">-- Programs</span>
+    has_study_abroad <span class="sql-type">BOOLEAN</span>,
+    has_dual_enrollment <span class="sql-type">BOOLEAN</span>,
+    has_distance_learning <span class="sql-type">BOOLEAN</span>,
+    has_teacher_certification <span class="sql-type">BOOLEAN</span>,
+
+    <span class="sql-comment">-- ROTC</span>
+    has_army_rotc <span class="sql-type">BOOLEAN</span>,
+    has_navy_rotc <span class="sql-type">BOOLEAN</span>,
+    has_air_force_rotc <span class="sql-type">BOOLEAN</span>,
+
+    <span class="sql-comment">-- Credit policies</span>
+    accepts_ap_credit <span class="sql-type">BOOLEAN</span>,
+    accepts_clep_credit <span class="sql-type">BOOLEAN</span>,
+    accepts_life_experience_credit <span class="sql-type">BOOLEAN</span>,
+
+    data_year <span class="sql-type">INTEGER</span> <span class="sql-constraint">NOT NULL</span>,
+    source <span class="sql-type">VARCHAR(50)</span> <span class="sql-constraint">NOT NULL</span>,
+    <span class="sql-constraint">UNIQUE</span>(institution_id, data_year, source)
+);</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Athletics Tables -->
+            <div id="domain-athletics" class="domain-content">
+                <div class="sql-container">
+                    <div class="sql-header">
+                        <span class="sql-table-name">athletics_membership</span>
+                        <span class="sql-badge badge-domain">Domain Table</span>
+                    </div>
+                    <div class="sql-body">
+                        <pre><span class="sql-keyword">CREATE TABLE</span> athletics_membership (
+    id <span class="sql-type">SERIAL</span> <span class="sql-constraint">PRIMARY KEY</span>,
+    institution_id <span class="sql-type">INTEGER</span> <span class="sql-constraint">NOT NULL REFERENCES</span> institutions(institution_id),
+
+    <span class="sql-comment">-- Division</span>
+    has_athletics <span class="sql-type">BOOLEAN</span>,
+    athletic_division <span class="sql-type">VARCHAR(50)</span>,  <span class="sql-comment">-- NCAA Division I, II, III, NAIA, etc.</span>
+    athletic_division_code <span class="sql-type">INTEGER</span>,
+
+    <span class="sql-comment">-- Conference</span>
+    athletic_conference <span class="sql-type">VARCHAR(100)</span>,
+    athletic_conference_code <span class="sql-type">INTEGER</span>,
+
+    <span class="sql-comment">-- Sports offered</span>
+    sports_offered <span class="sql-type">JSONB</span>,
+
+    data_year <span class="sql-type">INTEGER</span> <span class="sql-constraint">NOT NULL</span>,
+    source <span class="sql-type">VARCHAR(50)</span> <span class="sql-constraint">NOT NULL</span>,
+    <span class="sql-constraint">UNIQUE</span>(institution_id, data_year, source)
+);</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Outcomes Tables -->
+            <div id="domain-outcomes" class="domain-content">
+                <div class="sql-container">
+                    <div class="sql-header">
+                        <span class="sql-table-name">graduation_rates</span>
+                        <span class="sql-badge badge-domain">Domain Table</span>
+                    </div>
+                    <div class="sql-body">
+                        <pre><span class="sql-keyword">CREATE TABLE</span> graduation_rates (
+    id <span class="sql-type">SERIAL</span> <span class="sql-constraint">PRIMARY KEY</span>,
+    institution_id <span class="sql-type">INTEGER</span> <span class="sql-constraint">NOT NULL REFERENCES</span> institutions(institution_id),
+
+    <span class="sql-comment">-- Overall rates</span>
+    graduation_rate_4yr <span class="sql-type">NUMERIC(5,2)</span>,
+    graduation_rate_5yr <span class="sql-type">NUMERIC(5,2)</span>,
+    graduation_rate_6yr <span class="sql-type">NUMERIC(5,2)</span>,
+    graduation_rate_8yr <span class="sql-type">NUMERIC(5,2)</span>,
+
+    <span class="sql-comment">-- By gender</span>
+    grad_rate_6yr_men <span class="sql-type">NUMERIC(5,2)</span>,
+    grad_rate_6yr_women <span class="sql-type">NUMERIC(5,2)</span>,
+
+    <span class="sql-comment">-- By race/ethnicity</span>
+    grad_rate_6yr_white <span class="sql-type">NUMERIC(5,2)</span>,
+    grad_rate_6yr_black <span class="sql-type">NUMERIC(5,2)</span>,
+    grad_rate_6yr_hispanic <span class="sql-type">NUMERIC(5,2)</span>,
+    grad_rate_6yr_asian <span class="sql-type">NUMERIC(5,2)</span>,
+
+    cohort_year <span class="sql-type">INTEGER</span>,
+    data_year <span class="sql-type">INTEGER</span> <span class="sql-constraint">NOT NULL</span>,
+    source <span class="sql-type">VARCHAR(50)</span> <span class="sql-constraint">NOT NULL</span>,
+    <span class="sql-constraint">UNIQUE</span>(institution_id, data_year, source)
+);</pre>
+                    </div>
+                </div>
+
+                <div class="sql-container">
+                    <div class="sql-header">
+                        <span class="sql-table-name">earnings_outcomes</span>
+                        <span class="sql-badge badge-domain">Domain Table</span>
+                    </div>
+                    <div class="sql-body">
+                        <pre><span class="sql-keyword">CREATE TABLE</span> earnings_outcomes (
+    id <span class="sql-type">SERIAL</span> <span class="sql-constraint">PRIMARY KEY</span>,
+    institution_id <span class="sql-type">INTEGER</span> <span class="sql-constraint">NOT NULL REFERENCES</span> institutions(institution_id),
+
+    <span class="sql-comment">-- Median earnings</span>
+    median_earnings_6yr <span class="sql-type">INTEGER</span>,
+    median_earnings_8yr <span class="sql-type">INTEGER</span>,
+    median_earnings_10yr <span class="sql-type">INTEGER</span>,
+
+    <span class="sql-comment">-- By income tercile</span>
+    median_earnings_low_income <span class="sql-type">INTEGER</span>,
+    median_earnings_mid_income <span class="sql-type">INTEGER</span>,
+    median_earnings_high_income <span class="sql-type">INTEGER</span>,
+
+    <span class="sql-comment">-- Debt</span>
+    median_debt <span class="sql-type">INTEGER</span>,
+    median_debt_completers <span class="sql-type">INTEGER</span>,
+    median_debt_non_completers <span class="sql-type">INTEGER</span>,
+    median_monthly_loan_payment <span class="sql-type">INTEGER</span>,
+
+    <span class="sql-comment">-- Employment</span>
+    employment_rate_6yr <span class="sql-type">NUMERIC(5,2)</span>,
+
+    data_year <span class="sql-type">INTEGER</span> <span class="sql-constraint">NOT NULL</span>,
+    source <span class="sql-type">VARCHAR(50)</span> <span class="sql-constraint">NOT NULL</span>,
+    <span class="sql-constraint">UNIQUE</span>(institution_id, data_year, source)
+);</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Classification Tables -->
+            <div id="domain-classification" class="domain-content">
+                <div class="sql-container">
+                    <div class="sql-header">
+                        <span class="sql-table-name">institution_designations</span>
+                        <span class="sql-badge badge-domain">Domain Table</span>
+                    </div>
+                    <div class="sql-body">
+                        <pre><span class="sql-keyword">CREATE TABLE</span> institution_designations (
+    id <span class="sql-type">SERIAL</span> <span class="sql-constraint">PRIMARY KEY</span>,
+    institution_id <span class="sql-type">INTEGER</span> <span class="sql-constraint">NOT NULL REFERENCES</span> institutions(institution_id),
+
+    <span class="sql-comment">-- Federal designations</span>
+    is_hbcu <span class="sql-type">BOOLEAN</span>,
+    is_hsi <span class="sql-type">BOOLEAN</span>,
+    is_aanapisi <span class="sql-type">BOOLEAN</span>,
+    is_tribal <span class="sql-type">BOOLEAN</span>,
+    is_land_grant <span class="sql-type">BOOLEAN</span>,
+    is_state_flagship <span class="sql-type">BOOLEAN</span>,
+
+    <span class="sql-comment">-- Degree type</span>
+    is_associate_dominant <span class="sql-type">BOOLEAN</span>,
+    is_bachelors_dominant <span class="sql-type">BOOLEAN</span>,
+    is_masters_dominant <span class="sql-type">BOOLEAN</span>,
+    is_doctoral_dominant <span class="sql-type">BOOLEAN</span>,
+
+    <span class="sql-comment">-- Size category</span>
+    institution_size_category <span class="sql-type">VARCHAR(50)</span>,
+    institution_size_code <span class="sql-type">INTEGER</span>,
+
+    data_year <span class="sql-type">INTEGER</span> <span class="sql-constraint">NOT NULL</span>,
+    source <span class="sql-type">VARCHAR(50)</span> <span class="sql-constraint">NOT NULL</span>,
+    <span class="sql-constraint">UNIQUE</span>(institution_id, data_year)
+);</pre>
+                    </div>
+                </div>
+
+                <div class="sql-container">
+                    <div class="sql-header">
+                        <span class="sql-table-name">carnegie_classifications</span>
+                        <span class="sql-badge badge-domain">Domain Table</span>
+                    </div>
+                    <div class="sql-body">
+                        <pre><span class="sql-keyword">CREATE TABLE</span> carnegie_classifications (
+    id <span class="sql-type">SERIAL</span> <span class="sql-constraint">PRIMARY KEY</span>,
+    institution_id <span class="sql-type">INTEGER</span> <span class="sql-constraint">NOT NULL REFERENCES</span> institutions(institution_id),
+
+    <span class="sql-comment">-- 2021 classifications</span>
+    basic_2021_code <span class="sql-type">INTEGER</span>,
+    basic_2021_name <span class="sql-type">VARCHAR(200)</span>,
+    undergrad_profile_2021_code <span class="sql-type">INTEGER</span>,
+    grad_profile_2021_code <span class="sql-type">INTEGER</span>,
+    enrollment_profile_2021_code <span class="sql-type">INTEGER</span>,
+    size_setting_2021_code <span class="sql-type">INTEGER</span>,
+
+    <span class="sql-comment">-- Historical</span>
+    basic_2018_code <span class="sql-type">INTEGER</span>,
+    basic_2015_code <span class="sql-type">INTEGER</span>,
+    basic_2010_code <span class="sql-type">INTEGER</span>,
+    basic_2005_code <span class="sql-type">INTEGER</span>,
+
+    data_year <span class="sql-type">INTEGER</span> <span class="sql-constraint">NOT NULL</span>,
+    source <span class="sql-type">VARCHAR(50)</span> <span class="sql-constraint">NOT NULL</span>,
+    <span class="sql-constraint">UNIQUE</span>(institution_id, data_year)
+);</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Quality Tables -->
+            <div id="domain-dataquality" class="domain-content">
+                <div class="sql-container">
+                    <div class="sql-header">
+                        <span class="sql-table-name">data_sources</span>
+                        <span class="sql-badge badge-reference">Reference Table</span>
+                    </div>
+                    <div class="sql-body">
+                        <pre><span class="sql-keyword">CREATE TABLE</span> data_sources (
+    source_id <span class="sql-type">SERIAL</span> <span class="sql-constraint">PRIMARY KEY</span>,
+    source_code <span class="sql-type">VARCHAR(50)</span> <span class="sql-constraint">UNIQUE NOT NULL</span>,
+    source_name <span class="sql-type">VARCHAR(100)</span> <span class="sql-constraint">NOT NULL</span>,
+    source_type <span class="sql-type">VARCHAR(50)</span>,  <span class="sql-comment">-- federal, self_reported, scraped</span>
+    reliability_tier <span class="sql-type">VARCHAR(20)</span>,  <span class="sql-comment">-- authoritative, secondary, web_scraped</span>
+    priority <span class="sql-type">INTEGER</span>,  <span class="sql-comment">-- Lower = higher priority when merging</span>
+    update_frequency <span class="sql-type">VARCHAR(50)</span>,
+    api_endpoint <span class="sql-type">TEXT</span>,
+    documentation_url <span class="sql-type">TEXT</span>,
+    is_active <span class="sql-type">BOOLEAN</span> <span class="sql-constraint">DEFAULT TRUE</span>,
+    created_at <span class="sql-type">TIMESTAMPTZ</span> <span class="sql-constraint">DEFAULT NOW()</span>
+);
+
+<span class="sql-comment">-- Seed data</span>
+<span class="sql-keyword">INSERT INTO</span> data_sources (source_code, source_name, source_type, reliability_tier, priority) <span class="sql-keyword">VALUES</span>
+(<span class="sql-string">'ipeds_hd'</span>, <span class="sql-string">'IPEDS Directory'</span>, <span class="sql-string">'federal'</span>, <span class="sql-string">'authoritative'</span>, <span class="sql-number">3</span>),
+(<span class="sql-string">'ipeds_ic'</span>, <span class="sql-string">'IPEDS Inst. Characteristics'</span>, <span class="sql-string">'federal'</span>, <span class="sql-string">'authoritative'</span>, <span class="sql-number">3</span>),
+(<span class="sql-string">'ipeds_adm'</span>, <span class="sql-string">'IPEDS Admissions'</span>, <span class="sql-string">'federal'</span>, <span class="sql-string">'authoritative'</span>, <span class="sql-number">3</span>),
+(<span class="sql-string">'ipeds_ef'</span>, <span class="sql-string">'IPEDS Enrollment'</span>, <span class="sql-string">'federal'</span>, <span class="sql-string">'authoritative'</span>, <span class="sql-number">3</span>),
+(<span class="sql-string">'ipeds_gr'</span>, <span class="sql-string">'IPEDS Graduation Rates'</span>, <span class="sql-string">'federal'</span>, <span class="sql-string">'authoritative'</span>, <span class="sql-number">3</span>),
+(<span class="sql-string">'ipeds_sfa'</span>, <span class="sql-string">'IPEDS Financial Aid'</span>, <span class="sql-string">'federal'</span>, <span class="sql-string">'authoritative'</span>, <span class="sql-number">3</span>),
+(<span class="sql-string">'ipeds_c'</span>, <span class="sql-string">'IPEDS Completions'</span>, <span class="sql-string">'federal'</span>, <span class="sql-string">'authoritative'</span>, <span class="sql-number">3</span>),
+(<span class="sql-string">'scorecard'</span>, <span class="sql-string">'College Scorecard'</span>, <span class="sql-string">'federal'</span>, <span class="sql-string">'authoritative'</span>, <span class="sql-number">4</span>),
+(<span class="sql-string">'cds'</span>, <span class="sql-string">'Common Data Set'</span>, <span class="sql-string">'self_reported'</span>, <span class="sql-string">'secondary'</span>, <span class="sql-number">2</span>),
+(<span class="sql-string">'athletics'</span>, <span class="sql-string">'NCAA/NAIA Athletics'</span>, <span class="sql-string">'self_reported'</span>, <span class="sql-string">'secondary'</span>, <span class="sql-number">5</span>),
+(<span class="sql-string">'web_crawl'</span>, <span class="sql-string">'Website Crawling'</span>, <span class="sql-string">'scraped'</span>, <span class="sql-string">'web_scraped'</span>, <span class="sql-number">6</span>),
+(<span class="sql-string">'manual'</span>, <span class="sql-string">'Manual Override'</span>, <span class="sql-string">'curated'</span>, <span class="sql-string">'authoritative'</span>, <span class="sql-number">1</span>);</pre>
+                    </div>
+                </div>
+
+                <div class="sql-container">
+                    <div class="sql-header">
+                        <span class="sql-table-name">data_lineage</span>
+                        <span class="sql-badge badge-domain">Domain Table</span>
+                    </div>
+                    <div class="sql-body">
+                        <pre><span class="sql-keyword">CREATE TABLE</span> data_lineage (
+    id <span class="sql-type">SERIAL</span> <span class="sql-constraint">PRIMARY KEY</span>,
+    table_name <span class="sql-type">VARCHAR(100)</span> <span class="sql-constraint">NOT NULL</span>,
+    column_name <span class="sql-type">VARCHAR(100)</span> <span class="sql-constraint">NOT NULL</span>,
+    record_id <span class="sql-type">INTEGER</span> <span class="sql-constraint">NOT NULL</span>,
+    source_code <span class="sql-type">VARCHAR(50)</span> <span class="sql-constraint">NOT NULL REFERENCES</span> data_sources(source_code),
+    source_year <span class="sql-type">INTEGER</span>,
+    source_file <span class="sql-type">VARCHAR(255)</span>,
+    confidence_level <span class="sql-type">VARCHAR(20)</span>,  <span class="sql-comment">-- high, medium, low, estimated</span>
+    collector_name <span class="sql-type">VARCHAR(100)</span>,
+    collection_date <span class="sql-type">TIMESTAMPTZ</span>,
+    notes <span class="sql-type">TEXT</span>,
+    created_at <span class="sql-type">TIMESTAMPTZ</span> <span class="sql-constraint">DEFAULT NOW()</span>,
+
+    <span class="sql-constraint">UNIQUE</span>(table_name, column_name, record_id, source_code)
+);</pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Data Sources Section -->
+        <section id="sources" class="section">
+            <div class="section-header">
+                <div class="section-icon" style="background: linear-gradient(135deg, #f59e0b, #fbbf24);">
+                    <span style="color: white;">&#128203;</span>
+                </div>
+                <div>
+                    <h2 class="section-title">Data Sources Registry</h2>
+                    <p class="section-subtitle">Source priority and reliability tiers</p>
+                </div>
+            </div>
+
+            <table class="sources-table">
+                <thead>
+                    <tr>
+                        <th>Priority</th>
+                        <th>Source Code</th>
+                        <th>Source Name</th>
+                        <th>Type</th>
+                        <th>Reliability</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="priority-badge" style="background: var(--success);">1</span></td>
+                        <td><code>manual</code></td>
+                        <td>Manual Override</td>
+                        <td>Curated</td>
+                        <td><span class="tier-authoritative">Authoritative</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="priority-badge" style="background: var(--secondary);">2</span></td>
+                        <td><code>cds</code></td>
+                        <td>Common Data Set</td>
+                        <td>Self-reported</td>
+                        <td><span class="tier-secondary">Secondary</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="priority-badge" style="background: var(--primary);">3</span></td>
+                        <td><code>ipeds_*</code></td>
+                        <td>IPEDS (HD, IC, ADM, EF, GR, SFA, C)</td>
+                        <td>Federal</td>
+                        <td><span class="tier-authoritative">Authoritative</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="priority-badge" style="background: var(--warning);">4</span></td>
+                        <td><code>scorecard</code></td>
+                        <td>College Scorecard</td>
+                        <td>Federal</td>
+                        <td><span class="tier-authoritative">Authoritative</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="priority-badge" style="background: var(--gray-500);">5</span></td>
+                        <td><code>athletics</code></td>
+                        <td>NCAA/NAIA Athletics</td>
+                        <td>Self-reported</td>
+                        <td><span class="tier-secondary">Secondary</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="priority-badge" style="background: var(--danger);">6</span></td>
+                        <td><code>web_crawl</code></td>
+                        <td>Website Crawling</td>
+                        <td>Scraped</td>
+                        <td><span class="tier-scraped">Web Scraped</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Attribution Section -->
+        <section id="attribution" class="section">
+            <div class="section-header">
+                <div class="section-icon" style="background: linear-gradient(135deg, #8b5cf6, #a78bfa);">
+                    <span style="color: white;">&#128279;</span>
+                </div>
+                <div>
+                    <h2 class="section-title">Data Attribution Pattern</h2>
+                    <p class="section-subtitle">Every table includes standard attribution columns</p>
+                </div>
+            </div>
+
+            <div class="sql-container">
+                <div class="sql-header">
+                    <span class="sql-table-name">Standard Attribution Columns</span>
+                    <span class="sql-badge badge-domain">All Tables</span>
+                </div>
+                <div class="sql-body">
+                    <pre><span class="sql-comment">-- Every domain table includes these columns:</span>
+data_year <span class="sql-type">INTEGER</span> <span class="sql-constraint">NOT NULL</span>,        <span class="sql-comment">-- Year the data represents</span>
+source <span class="sql-type">VARCHAR(50)</span> <span class="sql-constraint">NOT NULL</span>,    <span class="sql-comment">-- Source code (ipeds_hd, cds, scorecard)</span>
+source_year <span class="sql-type">INTEGER</span>,              <span class="sql-comment">-- Year the source was published</span>
+confidence <span class="sql-type">VARCHAR(20)</span> <span class="sql-constraint">DEFAULT</span> <span class="sql-string">'high'</span>,  <span class="sql-comment">-- high, medium, low, estimated</span>
+created_at <span class="sql-type">TIMESTAMPTZ</span> <span class="sql-constraint">DEFAULT NOW()</span>,
+updated_at <span class="sql-type">TIMESTAMPTZ</span> <span class="sql-constraint">DEFAULT NOW()</span>
+
+<span class="sql-comment">-- Unique constraint pattern (allows multiple sources per year):</span>
+<span class="sql-constraint">UNIQUE</span>(institution_id, data_year, source)</pre>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <p>Prepasaur Comprehensive Database Schema Design</p>
+            <p>13 Domains | 35+ Tables | 400+ Columns | 100% Attribution</p>
+        </footer>
+    </div>
+
+    <script>
+        function showDomainTables(domain) {
+            // Hide all domain contents
+            document.querySelectorAll('.domain-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            // Remove active class from all tabs
+            document.querySelectorAll('.domain-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            // Show selected domain content
+            document.getElementById('domain-' + domain).classList.add('active');
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        // Smooth scroll for nav links
+        document.querySelectorAll('.nav-list a').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+    </script>
+</body>
+</html>

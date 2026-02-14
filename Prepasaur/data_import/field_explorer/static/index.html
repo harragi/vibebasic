@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Field Explorer - IPEDS Mapping Portal</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <!-- Top bar -->
+    <header class="top-bar">
+        <div class="top-bar-left">
+            <h1>Field Explorer</h1>
+            <span class="subtitle">IPEDS Mapping Portal</span>
+        </div>
+        <div class="top-bar-center">
+            <div class="tab-switcher">
+                <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+                <button class="tab-btn" data-tab="schema">Schema</button>
+            </div>
+        </div>
+        <div class="top-bar-right">
+            <div class="stats-bar">
+                <span class="stat" id="stat-total">0 fields</span>
+                <span class="stat stat-green" id="stat-mapped">0 mapped</span>
+                <span class="stat stat-yellow" id="stat-modified">0 modified</span>
+                <span class="stat stat-red" id="stat-gaps">0 gaps</span>
+            </div>
+            <button class="btn btn-export" id="btn-export">Export JSON</button>
+        </div>
+    </header>
+
+    <!-- Dashboard view -->
+    <div id="view-dashboard" class="view active">
+        <div class="dashboard-layout">
+            <!-- Category sidebar -->
+            <aside class="sidebar" id="sidebar">
+                <div class="sidebar-header">
+                    <h2>Categories</h2>
+                </div>
+                <div class="search-box">
+                    <input type="text" id="search-input" placeholder="Search fields...">
+                </div>
+                <div class="filter-toggles">
+                    <label class="toggle-label">
+                        <input type="checkbox" id="filter-modified"> Modified only
+                    </label>
+                </div>
+                <nav class="category-list" id="category-list"></nav>
+            </aside>
+
+            <!-- Field table -->
+            <main class="field-table-container">
+                <div class="table-header" id="table-header">
+                    <h2 id="current-category-title">Select a category</h2>
+                    <span class="field-count" id="field-count"></span>
+                </div>
+                <div class="table-scroll">
+                    <table class="field-table" id="field-table">
+                        <thead>
+                            <tr>
+                                <th>Field</th>
+                                <th>Source</th>
+                                <th>DDL Target</th>
+                                <th>IPEDS Source</th>
+                                <th>Transformation</th>
+                                <th>Status</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="field-table-body"></tbody>
+                    </table>
+                </div>
+            </main>
+        </div>
+
+        <!-- Edit drawer -->
+        <div class="edit-drawer" id="edit-drawer">
+            <div class="drawer-header">
+                <h3 id="drawer-title">Edit Field</h3>
+                <button class="btn-close" id="drawer-close">&times;</button>
+            </div>
+            <div class="drawer-body">
+                <div class="drawer-field-info" id="drawer-field-info"></div>
+
+                <div class="form-group">
+                    <label for="edit-ipeds-table">IPEDS Source Table</label>
+                    <select id="edit-ipeds-table"></select>
+                </div>
+                <div class="form-group">
+                    <label for="edit-ipeds-column">IPEDS Column(s)</label>
+                    <input type="text" id="edit-ipeds-column" placeholder="e.g., CONTROL, ADMSSN">
+                </div>
+                <div class="form-group">
+                    <label for="edit-ddl-table">DDL Target Table</label>
+                    <select id="edit-ddl-table"></select>
+                </div>
+                <div class="form-group">
+                    <label for="edit-ddl-column">DDL Target Column</label>
+                    <select id="edit-ddl-column"></select>
+                </div>
+                <div class="form-group">
+                    <label for="edit-transformation">Transformation Rule</label>
+                    <textarea id="edit-transformation" rows="3" placeholder="Describe the mapping transformation..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="edit-notes">Notes</label>
+                    <textarea id="edit-notes" rows="3" placeholder="Additional notes..."></textarea>
+                </div>
+                <div class="drawer-actions">
+                    <button class="btn btn-save" id="btn-save">Save</button>
+                    <button class="btn btn-cancel" id="btn-cancel">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Schema view -->
+    <div id="view-schema" class="view">
+        <div class="schema-layout">
+            <div class="schema-content" id="schema-content"></div>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
